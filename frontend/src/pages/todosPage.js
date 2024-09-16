@@ -1,13 +1,21 @@
+// Importar animate.css para utilizar animaciones
+import 'animate.css';
+
+// Variable para controlar el estado del modal
+let isModalOpen = false;
+
+// Función para crear la página de tareas
 export const todosPage = () => {
   const container = document.createElement("div");
-
   container.classList.add(
     "flex",
     "flex-col",
     "items-center",
     "justify-center",
     "h-screen",
-    "bg-gray-200"
+    "bg-gray-200",
+    "animate__animated",
+    "animate__fadeIn"  // Animación para la carga de la página
   );
 
   // Botón para volver a Home
@@ -22,7 +30,11 @@ export const todosPage = () => {
   );
   btnHome.textContent = "Home";
   btnHome.addEventListener("click", () => {
-    window.location.pathname = "/home";
+    container.classList.remove('animate__fadeIn');
+    container.classList.add('animate__animated', 'animate__fadeOut');
+    setTimeout(() => {
+      window.location.pathname = "/home";
+    }, 500); // Esperar a que termine la animación
   });
 
   // Título de la página
@@ -32,7 +44,7 @@ export const todosPage = () => {
 
   // Formulario para agregar una nueva tarea
   const form = document.createElement("form");
-  form.classList.add("mb-4");
+  form.classList.add("mb-4", "animate__animated", "animate__fadeIn");
 
   const input = document.createElement("input");
   input.setAttribute("type", "text");
@@ -177,11 +189,17 @@ export const todosPage = () => {
     tr.appendChild(td4);
     tr.appendChild(td5);
 
+    tr.classList.add('animate__animated', 'animate__fadeIn'); // Animación para filas de la tabla
+
     tbody.appendChild(tr);
   }
 
   // Función para abrir el modal de edición
   function openEditModal(todo) {
+    if (isModalOpen) return; // Evitar abrir múltiples modales
+
+    isModalOpen = true; // Marcar modal como abierto
+
     const modal = document.createElement("div");
     modal.classList.add(
       "fixed",
@@ -194,7 +212,9 @@ export const todosPage = () => {
       "p-6",
       "shadow-lg",
       "rounded",
-      "w-96"
+      "w-96",
+      "animate__animated",
+      "animate__zoomIn"  // Animación para abrir el modal
     );
 
     const title = document.createElement("h2");
@@ -237,7 +257,34 @@ export const todosPage = () => {
 
   // Función para cerrar el modal
   function closeModal(modal) {
-    document.body.removeChild(modal);
+    if (!isModalOpen) return; // Solo cerrar si está abierto
+
+    isModalOpen = false; // Marcar modal como cerrado
+
+    modal.classList.remove('animate__zoomIn');
+    modal.classList.add('animate__animated', 'animate__zoomOut'); // Animación para cerrar el modal
+
+    setTimeout(() => {
+      document.body.removeChild(modal);
+    }, 500); // Esperar a que termine la animación
+  }
+
+  // Función para eliminar una tarea
+  function deleteTodo(id, row) {
+    fetch(`http://localhost:4000/todos/${id}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error('Error al eliminar la tarea');
+      }
+      row.classList.add('animate__animated', 'animate__fadeOut');
+      setTimeout(() => row.remove(), 500); // Esperar a que termine la animación
+    })
+    .catch((error) => {
+      alert('Error: ' + error.message);
+    });
   }
 
   // Función para actualizar el título de una tarea
@@ -287,21 +334,6 @@ export const todosPage = () => {
     })
     .catch((error) => {
       console.error('Error al actualizar el estado de la tarea:', error);
-    });
-  }
-
-  // Función para eliminar una tarea
-  function deleteTodo(id, row) {
-    fetch(`http://localhost:4000/todos/${id}`, {
-      method: "DELETE",
-      credentials: "include",
-    })
-    .then((response) => response.json())
-    .then(() => {
-      row.remove(); // Eliminar la fila de la tabla
-    })
-    .catch((error) => {
-      console.error('Error al eliminar la tarea:', error);
     });
   }
 };
